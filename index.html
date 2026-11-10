@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Consolidado de Operaciones entre Dependencias de AGESP.SA</title>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; background: #eef2f5; color: #222; }
+  header { background: #1e3a5f; color: #fff; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  header h1 { margin: 0; font-size: 1.15rem; }
+  header p { margin: 2px 0 0; font-size: .82rem; opacity: .85; }
+  header .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  header .actions button { background: rgba(255,255,255,.15); color: #fff; border: 1px solid rgba(255,255,255,.3); padding: 7px 14px; border-radius: 4px; cursor: pointer; font-size: .85rem; }
+  header .actions button:hover { background: rgba(255,255,255,.25); }
+  header .actions button.accent { background: #276749; border-color: #276749; }
+  header .actions button.accent:hover { background: #22543d; }
+  nav { display: flex; flex-wrap: wrap; background: #2c5282; }
+  nav button { background: transparent; border: none; color: #cbd5e0; padding: 10px 18px; cursor: pointer; font-size: .9rem; border-bottom: 3px solid transparent; }
+  nav button:hover { background: #2a4a72; color: #fff; }
+  nav button.active { color: #fff; border-bottom-color: #f6ad55; background: #1e3a5f; }
+  main { padding: 20px; }
+  .sheet { display: none; }
+  .sheet.active { display: block; }
+  .sheet h2 { margin: 0 0 4px; color: #1e3a5f; }
+  .sheet .sub { color: #555; font-size: .9rem; margin-bottom: 16px; }
+  table { border-collapse: collapse; width: 100%; background: #fff; margin-bottom: 18px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  th, td { border: 1px solid #d1d9e0; padding: 6px 10px; text-align: left; font-size: .88rem; }
+  th { background: #2c5282; color: #fff; font-weight: 600; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  td input { width: 100%; border: none; background: #fffbea; padding: 4px; text-align: right; font-variant-numeric: tabular-nums; font-size: .88rem; }
+  td input:focus { outline: 2px solid #f6ad55; background: #fff; }
+  tr.section-row td { background: #e2e8f0; font-weight: 600; color: #1e3a5f; }
+  tr.total-row td { background: #cbd5e0; font-weight: 700; }
+  tr.result-row td { background: #2c5282; color: #fff; font-weight: 700; }
+  .ok { color: #276749; font-weight: 700; }
+  .bad { color: #c53030; font-weight: 700; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: .75rem; font-weight: 700; }
+  .badge.ok { background: #c6f6d5; color: #22543d; }
+  .badge.bad { background: #fed7d7; color: #742a2a; }
+  .sign { margin-top: 8px; font-size: .85rem; color: #444; }
+  .sign td { border: none; padding: 4px 8px; }
+  .toolbar { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .toolbar button { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: .88rem; background: #2c5282; color: #fff; }
+  .toolbar button:hover { background: #1e3a5f; }
+  .toolbar .warn { background: #c05621; }
+  .toolbar .warn:hover { background: #9c4221; }
+  .cuadres-title { font-weight: 700; color: #1e3a5f; margin: 18px 0 6px; }
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .kpi { background: #fff; border-radius: 8px; padding: 14px 18px; box-shadow: 0 1px 3px rgba(0,0,0,.08); border-left: 4px solid #2c5282; }
+  .kpi .label { font-size: .78rem; color: #555; text-transform: uppercase; letter-spacing: .4px; }
+  .kpi .value { font-size: 1.5rem; font-weight: 700; margin-top: 4px; color: #1e3a5f; }
+  .kpi.ok { border-left-color: #276749; }
+  .kpi.bad { border-left-color: #c53030; }
+  .kpi.warn { border-left-color: #c05621; }
+  .pairs-container { display: flex; flex-direction: column; gap: 12px; }
+  .pair-card { border-left: 5px solid #ccc; border-radius: 8px; padding: 14px 18px; box-shadow: 0 1px 3px rgba(0,0,0,.06); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .pair-header { font-weight: 700; font-size: .95rem; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .pair-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .compare-table { width: 100%; border-collapse: collapse; background: rgba(255,255,255,.75); border-radius: 6px; overflow: hidden; box-shadow: none; margin-bottom: 0; }
+  .compare-table th, .compare-table td { padding: 8px 12px; border: 1px solid rgba(0,0,0,.08); font-size: .85rem; }
+  .compare-table thead th { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; text-align: center; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .compare-table tbody td.cc-pair { font-weight: 700; font-size: .8rem; color: #555; background: rgba(0,0,0,.02); }
+  .compare-table tbody td.num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+  .compare-table tbody td.diff { font-weight: 800; font-size: .95rem; }
+  dialog { border: none; border-radius: 8px; padding: 20px 24px; max-width: 620px; width: 90%; box-shadow: 0 10px 40px rgba(0,0,0,.3); }
+  dialog::backdrop { background: rgba(0,0,0,.4); }
+  dialog h2 { margin: 0 0 16px; color: #1e3a5f; }
+  dialog h3 { margin: 18px 0 8px; color: #1e3a5f; font-size: .95rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; }
+  dialog .form-group { margin-bottom: 12px; }
+  dialog .form-group label { display: block; font-size: .85rem; color: #444; margin-bottom: 4px; font-weight: 600; }
+  dialog .form-group input[type="text"] { width: 100%; padding: 7px 10px; border: 1px solid #cbd5e0; border-radius: 4px; font-size: .9rem; }
+  dialog .firmante-group { background: #f7fafc; padding: 10px 12px; border-radius: 6px; margin-bottom: 8px; }
+  dialog .firmante-group h4 { margin: 0 0 6px; font-size: .85rem; color: #2c5282; }
+  dialog .firmante-group label { display: block; font-size: .82rem; margin-bottom: 4px; }
+  dialog .firmante-group input { width: 100%; padding: 5px 8px; border: 1px solid #cbd5e0; border-radius: 4px; font-size: .85rem; }
+  dialog .actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+  dialog .actions button { padding: 8px 18px; border: none; border-radius: 4px; font-size: .9rem; cursor: pointer; }
+  dialog .actions .primary { background: #2c5282; color: #fff; }
+  dialog .actions .primary:hover { background: #1e3a5f; }
+  dialog .actions .secondary { background: #e2e8f0; color: #2c5282; }
+  .toast { position: fixed; bottom: 20px; right: 20px; background: #276749; color: #fff; padding: 10px 18px; border-radius: 6px; font-size: .88rem; opacity: 0; transition: opacity .3s; pointer-events: none; z-index: 999; }
+  .toast.show { opacity: 1; }
+  .success-panel { background: #f0fff4; border-left: 5px solid #38a169; padding: 20px 24px; border-radius: 8px; color: #22543d; font-size: .95rem; line-height: 1.6; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  .success-panel .big { font-size: 2rem; display: block; margin-bottom: 4px; }
+  @media print {
+    @page { size: letter portrait; margin: 1cm 1.1cm; }
+    body { background: #fff; margin: 0; }
+    header, nav, .toolbar, .no-print, .toast { display: none !important; }
+    main { padding: 0; }
+    .sheet { display: none; }
+    .sheet.active { display: block !important; }
+    body.printing-all .sheet { display: block !important; page-break-after: always; }
+    body.printing-all .sheet:last-child { page-break-after: auto; }
+    table { box-shadow: none; page-break-inside: avoid; margin-bottom: 12px; }
+    th { background: #2c5282 !important; color: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    tr.section-row td { background: #e2e8f0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    tr.total-row td { background: #cbd5e0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    tr.result-row td { background: #2c5282 !important; color: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    td input { border: none !important; background: transparent !important; padding: 0 !important; }
+    .sign td { border: none !important; }
+    h2, .sub { color: #000; }
+    .sheet .sub { font-size: .85rem; }
+    body.printing-all .sheet + .sheet { page-break-before: always; }
+    body::before { content: "Consolidado de Operaciones entre Dependencias de AGESP.SA — Cuentas 696-100 / 696-200"; display: block; font-size: .78rem; color: #555; border-bottom: 1px solid #999; padding-bottom: 4px; margin-bottom: 10px; font-weight: 600; }
+    .pair-card { page-break-inside: avoid; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .compare-table { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1 id="mainTitle">Consolidado de Operaciones entre Dependencias de AGESP.SA</h1>
+    <p id="subTitle">Cuentas 696-100 / 696-200</p>
+  </div>
+  <div class="actions">
+    <button onclick="openSettings()">⚙ Configuración</button>
+    <button onclick="printAll()">🖨 Imprimir todo</button>
+    <button onclick="exportAll()">⬇ Exportar todo</button>
+    <button class="accent" onclick="triggerImport()">⬆ Importar plantilla</button>
+  </div>
+</header>
+<nav id="tabs"></nav>
+<main id="main"></main>
+
+<input type="file" id="importFile" accept=".xlsx,.xls" style="display:none" onchange="handleImport(this)">
+
+<dialog id="settingsDialog">
+  <h2>⚙ Configuración</h2>
+  <div class="form-group">
+    <label>Nombre de la empresa</label>
+    <input type="text" id="cfgEmpresa" placeholder="AGESP.SA">
+  </div>
+  <div class="form-group">
+    <label>Período (opcional, se muestra bajo el título)</label>
+    <input type="text" id="cfgPeriodo" placeholder="Ej: Enero 2025">
+  </div>
+  <div class="form-group">
+    <label><input type="checkbox" id="cfgShowDiff"> Mostrar columna "Diferencia" en pantalla</label>
+  </div>
+  <h3>Firmantes por hoja</h3>
+  <div id="cfgFirmantes"></div>
+  <div class="actions">
+    <button class="secondary" onclick="document.getElementById('settingsDialog').close()">Cancelar</button>
+    <button class="primary" onclick="applySettings()">Guardar</button>
+  </div>
+</dialog>
+
+<div class="toast" id="toast">✓ Cambios guardados</div>
+
+<script>
+/* =====================================================================
+   CONFIG
+   ===================================================================== */
+const CONFIG_KEY = 'prioyeto_config_v1';
+const CONFIG = { empresa: 'AGESP.SA', periodo: '', showDiffCol: false };
+function loadConfig(){ try { const raw = localStorage.getItem(CONFIG_KEY); if (raw) Object.assign(CONFIG, JSON.parse(raw)); } catch(e){} }
+function saveConfig(){ try { localStorage.setItem(CONFIG_KEY, JSON.stringify(CONFIG)); } catch(e){} }
+loadConfig();
+
+/* =====================================================================
+   DATOS BASE
+   ===================================================================== */
+const DATA = {
+  OCCIDENTE: {
+    nombre:'OCCIDENTE', subtitulo:'TERRITORIO OCCIDENTAL CONSOLIDADO', ccosto:'300',
+    territorio:{ v100: 271732224.76, v200: 231484646.50 },
+    saldo100:663517201.53, saldo200:539914058,
+    agencias:[
+      {nombre:'PH', cc:'230', v100:78814597.04, v200:84980443.92},
+      {nombre:'AGENCIA ISLA', cc:'301', v100:11806219.82, v200:20022242.37},
+      {nombre:'AGENCIA PINAR', cc:'305', v100:13789714.86, v200:19014537.62},
+      {nombre:'ASTRO - TRADEX', cc:'310', v100:127074114.78, v200:147715000.85},
+      {nombre:'COTORRO-LUYANO', cc:'320', v100:0, v200:0},
+    ],
+    dirGral:{v100:132093476.30, v200:7751469.28},
+    otros:[
+      {nombre:'TERRITORIO CENTRO', cc:'400', v100:21705987.18, v200:22234859.71},
+      {nombre:'TERRITORIO CENTRO ESTE', cc:'500', v100:4206209.51, v200:4201369.51},
+      {nombre:'TERRITORIO ORIENTE', cc:'600', v100:1861297.52, v200:1026900},
+      {nombre:'SERVICIOS TECNICOS', cc:'700', v100:433359.76, v200:1482588.24},
+    ],
+    cert:'MARICE RODRIGUEZ VEIGA', recibido:'Elieser Duarte López'
+  },
+  CENTRO: {
+    nombre:'CENTRO', subtitulo:'TERRITORIO CENTRO CONSOLIDADO', ccosto:'400',
+    territorio:{ v100: 60482854.39, v200: 37344514.00 },
+    saldo100:146344835.57, saldo200:136837885.38,
+    agencias:[
+      {nombre:'CIENFUEGOS', cc:'401', v100:6695503.11, v200:22775275.94},
+      {nombre:'SANCTI SPIRITUS', cc:'402', v100:9225965.32, v200:10481892.69},
+      {nombre:'SANTA CLARA', cc:'403', v100:12570918.25, v200:18756583.52},
+      {nombre:'MATANZAS', cc:'404', v100:10879999.32, v200:10496974.24},
+    ],
+    dirGral:{v100:24234576.75, v200:13588927.58},
+    otros:[
+      {nombre:'TERRITORIO OCCIDENTE', cc:'300', v100:22234859.71, v200:21705987.18},
+      {nombre:'TERRITORIO CENTRO ESTE', cc:'500', v100:19988, v200:1019988},
+      {nombre:'TERRITORIO ORIENTE', cc:'600', v100:0, v200:667742.23},
+      {nombre:'SERVICIOS TECNICOS', cc:'700', v100:170.72, v200:0},
+    ],
+    cert:'MARITZA GONZALEZ PEREZ', recibido:'Elieser Duarte López'
+  },
+  'CENTRO ESTE': {
+    nombre:'CENTRO ESTE', subtitulo:'TERRITORIO CENTRO ESTE CONSOLIDADO', ccosto:'500',
+    territorio:{ v100: 60085323.94, v200: 45969186.40 },
+    saldo100:122970314.72, saldo200:114742511.07,
+    agencias:[
+      {nombre:'AGENCIA 21 CAMAGUEY', cc:'501', v100:18315786.21, v200:23374228.25},
+      {nombre:'AGENCIA 29 CIEGO', cc:'502', v100:0, v200:0},
+      {nombre:'AGENCIA 30 TUNAS', cc:'503', v100:19383754.55, v200:25234053.08},
+      {nombre:'AGENCIA 38 AUTOMOTOR', cc:'504', v100:0, v200:0},
+      {nombre:'AGENCIA 28 NUEVITAS', cc:'505', v100:8787696.08, v200:11995093.05},
+    ],
+    dirGral:{v100:10102915.75, v200:2953800.05},
+    otros:[
+      {nombre:'TERRITORIO OCCIDENTE', cc:'300', v100:4201369.51, v200:4206209.51},
+      {nombre:'TERRITORIO CENTRO', cc:'400', v100:1019988, v200:19988},
+      {nombre:'TERRITORIO ORIENTE', cc:'600', v100:558941.16, v200:424095.4},
+      {nombre:'SERVICIOS TECNICOS', cc:'700', v100:514539.52, v200:565857.33},
+    ],
+    cert:'BARBARA RAMOS EVANS', recibido:'Elieser Duarte López'
+  },
+  ORIENTE: {
+    nombre:'ORIENTE', subtitulo:'TERRITORIO ORIENTE CONSOLIDADO', ccosto:'600',
+    territorio:{ v100: 175489662.16, v200: 116247009.95 },
+    saldo100:354665459.25, saldo200:307279009.81,
+    agencias:[
+      {nombre:'AGENCIA 31 Stgo Puerto', cc:'601', v100:56362157.39, v200:84631040.99},
+      {nombre:'AGENCIA 32 Stgo Fcc', cc:'602', v100:0, v200:0},
+      {nombre:'AGENCIA 40 Camiones', cc:'603', v100:0, v200:0},
+      {nombre:'AGENCIA 34 Holguin', cc:'605', v100:25958796.54, v200:35085359.48},
+      {nombre:'AGENCIA 35 Granma', cc:'606', v100:28048332.68, v200:48150509.9},
+      {nombre:'AGENCIA 36 Guantanamo', cc:'607', v100:11903848.63, v200:13648877.08},
+    ],
+    dirGral:{v100:53178968.20, v200:5547581.70},
+    otros:[
+      {nombre:'TERRITORIO OCCIDENTE', cc:'300', v100:1026900, v200:1861297.52},
+      {nombre:'TERRITORIO CENTRO', cc:'400', v100:667742.23, v200:0},
+      {nombre:'TERRITORIO CENTRO ESTE', cc:'500', v100:424095.4, v200:558941.16},
+      {nombre:'SERVICIOS TECNICOS', cc:'700', v100:1604956.02, v200:1548392.03},
+    ],
+    cert:'YAMILA CASTELLANOS BONNE', recibido:'Elieser Duarte López'
+  },
+  'SERVICIOS TECNICOS': {
+    nombre:'SERVICIOS TECNICOS', subtitulo:'TERRITORIO SERVICIOS TECNICOS', ccosto:'700',
+    territorio:null,
+    saldo100:4053082.71, saldo200:3970252.79,
+    agencias:[],
+    dirGral:{v100:456245.11, v200:1417226.77},
+    otros:[
+      {nombre:'TERRITORIO OCCIDENTE', cc:'300', v100:1482588.24, v200:433359.76},
+      {nombre:'TERRITORIO CENTRO', cc:'400', v100:0, v200:170.72},
+      {nombre:'TERRITORIO CENTRO ESTE', cc:'500', v100:565857.33, v200:514539.52},
+      {nombre:'TERRITORIO ORIENTE', cc:'600', v100:1548392.03, v200:1604956.02},
+    ],
+    cert:'Danaisy de la Caridad Reyes', recibido:'Elieser Duarte López'
+  },
+  JEFT: {
+    nombre:'JEFT', subtitulo:'TERRITORIO JEFATURA', ccosto:'150',
+    territorio:null,
+    saldo100:30915226.62, saldo200:213704312.4,
+    agencias:[],
+    dirGral:{v100:0, v200:0},
+    otros:[
+      {nombre:'TERRITORIO OCCIDENTE', cc:'300', v100:7610373.52, v200:131866533.66},
+      {nombre:'TERRITORIO CENTRO', cc:'400', v100:13543101.51, v200:24202856.99},
+      {nombre:'TERRITORIO CENTRO ESTE', cc:'500', v100:2909957.72, v200:10023470.27},
+      {nombre:'TERRITORIO ORIENTE', cc:'600', v100:5434567.1, v200:47155206.37},
+      {nombre:'SERVICIOS TECNICOS', cc:'700', v100:1417226.77, v200:456245.11},
+    ],
+    cert:'Olga Mendoza Comas', recibido:'Elieser Duarte López'
+  }
+};
+
+const STORAGE_KEY = 'prioyeto_data_v5';
+function saveData() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(DATA)); } catch(e){} }
+function loadData() { try { const raw = localStorage.getItem(STORAGE_KEY); if (raw) Object.assign(DATA, JSON.parse(raw)); } catch(e){} }
+loadData();
+
+/* ============ Utilidades ============ */
+const fmt = n => (n === null || n === undefined || isNaN(n)) ? '' :
+  Number(n).toLocaleString('es-ES', {minimumFractionDigits:2, maximumFractionDigits:2});
+const num = v => { const n = parseFloat(String(v).replace(/,/g,'')); return isNaN(n)?0:n; };
+const sum = (arr, key) => arr.reduce((a,x)=>a + num(x[key]), 0);
+function diffClass(v){ return Math.abs(v) < 0.01 ? 'ok' : 'bad'; }
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._t); t._t = setTimeout(()=>t.classList.remove('show'), 2000);
+}
+function updateHeader(){
+  document.getElementById('mainTitle').textContent =
+    'Consolidado de Operaciones entre Dependencias de ' + CONFIG.empresa;
+  document.getElementById('subTitle').textContent =
+    'Cuentas 696-100 / 696-200' + (CONFIG.periodo ? ' · ' + CONFIG.periodo : '');
+}
+
+function getEntry(sheetKey, cc) {
+  const d = DATA[sheetKey];
+  if (!d) return {v100:0, v200:0};
+  if (cc === '150') return d.dirGral || {v100:0, v200:0};
+  return d.otros.find(o => o.cc === cc) || {v100:0, v200:0};
+}
+
+/* ============ Render hoja ============ */
+function renderSheet(sheetKey) {
+  const d = DATA[sheetKey];
+  const hasTerritorio = d.territorio !== null && d.territorio !== undefined;
+  const totalAgencias100 = sum(d.agencias,'v100');
+  const totalAgencias200 = sum(d.agencias,'v200');
+  const totalOtros100 = sum(d.otros,'v100');
+  const totalOtros200 = sum(d.otros,'v200');
+
+  let cuadre100 = 0, cuadre200 = 0;
+  if (hasTerritorio) {
+    cuadre100 = num(d.territorio.v100) + totalAgencias100;
+    cuadre200 = num(d.territorio.v200) + totalAgencias200;
+  } else if (sheetKey === 'SERVICIOS TECNICOS') {
+    cuadre100 = num(d.dirGral.v100) + totalOtros100;
+    cuadre200 = num(d.dirGral.v200) + totalOtros200;
+  } else if (sheetKey === 'JEFT') {
+    cuadre100 = totalOtros100;
+    cuadre200 = totalOtros200;
+  }
+
+  let totalPorCuentas100, totalPorCuentas200;
+  if (hasTerritorio) {
+    totalPorCuentas100 = cuadre100 + num(d.dirGral.v100) + totalOtros100;
+    totalPorCuentas200 = cuadre200 + num(d.dirGral.v200) + totalOtros200;
+  } else {
+    totalPorCuentas100 = cuadre100;
+    totalPorCuentas200 = cuadre200;
+  }
+
+  const dif100 = totalPorCuentas100 - num(d.saldo100);
+  const dif200 = totalPorCuentas200 - num(d.saldo200);
+  const showDiff = CONFIG.showDiffCol;
+
+  let html = `<div class="sheet active"><h2>${d.nombre}</h2>
+    <div class="sub">${d.subtitulo} · C. Costo ${d.ccosto}</div>
+    <div class="toolbar no-print">
+      <button onclick="printSheet()">🖨 Imprimir esta hoja</button>
+      <button onclick="exportSheet('${sheetKey}')">⬇ Exportar plantilla</button>
+      <button class="warn" onclick="resetSheet()">↺ Restaurar valores</button>
+    </div>
+    <table>
+      <thead><tr>
+        <th style="width:34%">Concepto</th><th>C. Costo</th><th>696-100</th><th>696-200</th>
+        ${showDiff ? '<th>Diferencia</th>' : ''}
+      </tr></thead>
+      <tbody>`;
+
+  html += `<tr class="section-row"><td>CUADRE DE LA REGION</td><td></td>
+    <td class="num">${fmt(cuadre100)}</td><td class="num">${fmt(cuadre200)}</td>
+    ${showDiff ? `<td class="num">${fmt(cuadre100-cuadre200)}</td>` : ''}</tr>`;
+
+  if (hasTerritorio) {
+    html += `<tr class="total-row"><td>TERRITORIO</td><td>${d.ccosto}</td>
+      <td class="num"><input type="number" step="0.01" value="${d.territorio.v100}" onchange="setTerritorio('${sheetKey}','v100',this.value)"></td>
+      <td class="num"><input type="number" step="0.01" value="${d.territorio.v200}" onchange="setTerritorio('${sheetKey}','v200',this.value)"></td>
+      ${showDiff ? `<td class="num">${fmt(num(d.territorio.v100)-num(d.territorio.v200))}</td>` : ''}</tr>`;
+  }
+
+  if (d.agencias.length) {
+    html += `<tr class="total-row"><td>TOTAL C. COSTO</td><td></td>
+      <td class="num">${fmt(totalAgencias100)}</td><td class="num">${fmt(totalAgencias200)}</td>
+      ${showDiff ? `<td class="num">${fmt(totalAgencias100-totalAgencias200)}</td>` : ''}</tr>`;
+    d.agencias.forEach((a,i)=>{
+      html += `<tr><td>${a.nombre}</td><td>${a.cc}</td>
+        <td class="num"><input type="number" step="0.01" value="${a.v100}" onchange="setAgencia('${sheetKey}',${i},'v100',this.value)"></td>
+        <td class="num"><input type="number" step="0.01" value="${a.v200}" onchange="setAgencia('${sheetKey}',${i},'v200',this.value)"></td>
+        ${showDiff ? `<td class="num">${fmt(num(a.v100)-num(a.v200))}</td>` : ''}</tr>`;
+    });
+  }
+
+  if (!hasTerritorio && sheetKey === 'SERVICIOS TECNICOS') {
+    html += `<tr class="total-row"><td>DIRECCION GENERAL</td><td>150</td>
+      <td class="num"><input type="number" step="0.01" value="${d.dirGral.v100}" onchange="setDirGral('${sheetKey}','v100',this.value)"></td>
+      <td class="num"><input type="number" step="0.01" value="${d.dirGral.v200}" onchange="setDirGral('${sheetKey}','v200',this.value)"></td>
+      ${showDiff ? `<td class="num">${fmt(num(d.dirGral.v100)-num(d.dirGral.v200))}</td>` : ''}</tr>`;
+  } else if (hasTerritorio) {
+    html += `<tr class="section-row"><td>DIRECCION GENERAL</td><td>150</td>
+      <td class="num"><input type="number" step="0.01" value="${d.dirGral.v100}" onchange="setDirGral('${sheetKey}','v100',this.value)"></td>
+      <td class="num"><input type="number" step="0.01" value="${d.dirGral.v200}" onchange="setDirGral('${sheetKey}','v200',this.value)"></td>
+      ${showDiff ? `<td class="num">${fmt(num(d.dirGral.v100)-num(d.dirGral.v200))}</td>` : ''}</tr>`;
+  }
+
+  d.otros.forEach((o,i)=>{
+    html += `<tr><td>${o.nombre}</td><td>${o.cc}</td>
+      <td class="num"><input type="number" step="0.01" value="${o.v100}" onchange="setOtro('${sheetKey}',${i},'v100',this.value)"></td>
+      <td class="num"><input type="number" step="0.01" value="${o.v200}" onchange="setOtro('${sheetKey}',${i},'v200',this.value)"></td>
+      ${showDiff ? `<td class="num">${fmt(num(o.v100)-num(o.v200))}</td>` : ''}</tr>`;
+  });
+
+  html += `<tr class="total-row"><td>TOTAL OTROS TERRIT.</td><td></td>
+    <td class="num">${fmt(totalOtros100)}</td><td class="num">${fmt(totalOtros200)}</td>
+    ${showDiff ? `<td class="num">${fmt(totalOtros100-totalOtros200)}</td>` : ''}</tr>`;
+
+  html += `<tr class="result-row"><td>TOTAL POR CUENTAS</td><td></td>
+    <td class="num">${fmt(totalPorCuentas100)}</td><td class="num">${fmt(totalPorCuentas200)}</td>
+    ${showDiff ? `<td class="num">${fmt(totalPorCuentas100-totalPorCuentas200)}</td>` : ''}</tr>`;
+
+  html += `<tr class="total-row"><td>SALDO CUENTAS CONTAB.</td><td></td>
+    <td class="num"><input type="number" step="0.01" value="${d.saldo100}" onchange="setSaldo('${sheetKey}','saldo100',this.value)"></td>
+    <td class="num"><input type="number" step="0.01" value="${d.saldo200}" onchange="setSaldo('${sheetKey}','saldo200',this.value)"></td>
+    ${showDiff ? `<td class="num">${fmt(num(d.saldo100)-num(d.saldo200))}</td>` : ''}</tr>`;
+
+  html += `<tr class="result-row"><td>DIFERENCIA</td><td></td>
+    <td class="num ${diffClass(dif100)}">${fmt(dif100)}</td>
+    <td class="num ${diffClass(dif200)}">${fmt(dif200)}</td>
+    ${showDiff ? '<td></td>' : ''}</tr>`;
+
+  html += `</tbody></table>`;
+
+  html += `<table class="sign">
+    <tr><td>CERTIFICA: ______________________________</td><td>RECIBIDO POR: ______________________________</td></tr>
+    <tr><td>${d.cert}</td><td>${d.recibido}</td></tr>
+  </table>`;
+
+  html += renderCuadres(sheetKey);
+  html += `</div>`;
+  return html;
+}
+
+/* ============ Configuración de cuadres ============ */
+function getCuadresConfig() {
+  return {
+    OCCIDENTE: [
+      {terr:'TERRITORIO CENTRO',      cc:'400', ref:'CENTRO'},
+      {terr:'TERRITORIO CENTRO ESTE', cc:'500', ref:'CENTRO ESTE'},
+      {terr:'TERRITORIO ORIENTE',     cc:'600', ref:'ORIENTE'},
+      {terr:'SERVICIOS TECNICOS',     cc:'700', ref:'SERVICIOS TECNICOS'},
+      {terr:'DIRECCION GENERAL',      cc:'150', ref:'JEFT'},
+    ],
+    CENTRO: [
+      {terr:'TERRITORIO OCCIDENTE',   cc:'300', ref:'OCCIDENTE'},
+      {terr:'TERRITORIO CENTRO ESTE', cc:'500', ref:'CENTRO ESTE'},
+      {terr:'TERRITORIO ORIENTE',     cc:'600', ref:'ORIENTE'},
+      {terr:'SERVICIOS TECNICOS',     cc:'700', ref:'SERVICIOS TECNICOS'},
+      {terr:'DIRECCION GENERAL',      cc:'150', ref:'JEFT'},
+    ],
+    'CENTRO ESTE': [
+      {terr:'TERRITORIO OCCIDENTE',   cc:'300', ref:'OCCIDENTE'},
+      {terr:'TERRITORIO CENTRO',      cc:'400', ref:'CENTRO'},
+      {terr:'TERRITORIO ORIENTE',     cc:'600', ref:'ORIENTE'},
+      {terr:'SERVICIOS TECNICOS',     cc:'700', ref:'SERVICIOS TECNICOS'},
+      {terr:'DIRECCION GENERAL',      cc:'150', ref:'JEFT'},
+    ],
+    ORIENTE: [
+      {terr:'TERRITORIO OCCIDENTE',   cc:'300', ref:'OCCIDENTE'},
+      {terr:'TERRITORIO CENTRO',      cc:'400', ref:'CENTRO'},
+      {terr:'TERRITORIO CENTRO ESTE', cc:'500', ref:'CENTRO ESTE'},
+      {terr:'SERVICIOS TECNICOS',     cc:'700', ref:'SERVICIOS TECNICOS'},
+      {terr:'DIRECCION GENERAL',      cc:'150', ref:'JEFT'},
+    ],
+    'SERVICIOS TECNICOS': [
+      {terr:'TERRITORIO OCCIDENTE',   cc:'300', ref:'OCCIDENTE'},
+      {terr:'TERRITORIO CENTRO',      cc:'400', ref:'CENTRO'},
+      {terr:'TERRITORIO CENTRO ESTE', cc:'500', ref:'CENTRO ESTE'},
+      {terr:'TERRITORIO ORIENTE',     cc:'600', ref:'ORIENTE'},
+      {terr:'DIRECCION GENERAL',      cc:'150', ref:'JEFT'},
+    ],
+    JEFT: [
+      {terr:'TERRITORIO OCCIDENTE',   cc:'300', ref:'OCCIDENTE'},
+      {terr:'TERRITORIO CENTRO',      cc:'400', ref:'CENTRO'},
+      {terr:'TERRITORIO CENTRO ESTE', cc:'500', ref:'CENTRO ESTE'},
+      {terr:'TERRITORIO ORIENTE',     cc:'600', ref:'ORIENTE'},
+      {terr:'SERVICIOS TECNICOS',     cc:'700', ref:'SERVICIOS TECNICOS'},
+    ]
+  };
+}
+
+function calcCuadre(sheetKey, r) {
+  const d = DATA[sheetKey];
+  const propio = getEntry(sheetKey, r.cc);
+  const refItem = getEntry(r.ref, d.ccosto);
+  return { v100: num(propio.v100) - num(refItem.v200), v200: num(propio.v200) - num(refItem.v100) };
+}
+
+function renderCuadres(sheetKey) {
+  const config = getCuadresConfig();
+  const rows = config[sheetKey] || [];
+  let html = `<div class="cuadres-title">CUADRES (reciprocidad entre hojas)</div>
+    <table><thead><tr><th>TERRITORIOS</th><th>C.C</th><th>696-100</th><th>696-200</th><th>Estado</th></tr></thead><tbody>`;
+  rows.forEach(r => {
+    const {v100, v200} = calcCuadre(sheetKey, r);
+    const ok = Math.abs(v100) < 0.01 && Math.abs(v200) < 0.01;
+    html += `<tr><td>${r.terr}</td><td>${r.cc}</td>
+      <td class="num ${diffClass(v100)}">${fmt(v100)}</td>
+      <td class="num ${diffClass(v200)}">${fmt(v200)}</td>
+      <td>${ok ? '<span class="badge ok">✓ OK</span>' : '<span class="badge bad">✗ Diferencia</span>'}</td></tr>`;
+  });
+  html += `</tbody></table>`;
+  return html;
+}
+
+/* ============ Estadísticas ============ */
+function renderStats() {
+  const config = getCuadresConfig();
+  const pairMap = {};
+  Object.keys(config).forEach(sheetKey => {
+    config[sheetKey].forEach(r => {
+      const key = [sheetKey, r.ref].sort().join('|');
+      if (!pairMap[key]) pairMap[key] = { from: sheetKey, to: r.ref };
+    });
+  });
+  const pairList = Object.values(pairMap).map(g => {
+    const ccFrom = DATA[g.from].ccosto, ccTo = DATA[g.to].ccosto;
+    const ida = getEntry(g.from, ccTo), vuelta = getEntry(g.to, ccFrom);
+    const ida100 = num(ida.v100), ida200 = num(ida.v200);
+    const vuel100 = num(vuelta.v100), vuel200 = num(vuelta.v200);
+    const dif100 = ida100 - vuel200, dif200 = ida200 - vuel100;
+    const absMax = Math.max(Math.abs(dif100), Math.abs(dif200));
+    return { from: g.from, to: g.to, ccFrom, ccTo, ida100, ida200, vuel100, vuel200, dif100, dif200, absMax, ok: absMax < 0.01 };
+  });
+  pairList.sort((a, b) => { if (a.ok !== b.ok) return a.ok ? 1 : -1; return b.absMax - a.absMax; });
+
+  const totalPairs = pairList.length;
+  const badPairs = pairList.filter(g => !g.ok);
+  const okPairs = pairList.filter(g => g.ok);
+  const badCount = badPairs.length;
+  const maxDiff = badCount ? badPairs[0].absMax : 0;
+  const sumAbsDiff = badPairs.reduce((s,g) => s + g.absMax, 0);
+
+  const PALETTE = [
+    { border:'#c53030', bg:'#fff5f5', text:'#9b2c2c', light:'#fed7d7' },
+    { border:'#c05621', bg:'#fffaf0', text:'#9c4221', light:'#feebc8' },
+    { border:'#b7791f', bg:'#fffff0', text:'#975a16', light:'#fefcbf' },
+    { border:'#2f855a', bg:'#f0fff4', text:'#276749', light:'#c6f6d5' },
+    { border:'#285e61', bg:'#e6fffa', text:'#234e52', light:'#b2f5ea' },
+    { border:'#2c5282', bg:'#ebf8ff', text:'#2a4365', light:'#bee3f8' },
+    { border:'#4c51bf', bg:'#ebf4ff', text:'#3c366b', light:'#c3dafe' },
+    { border:'#6b46c1', bg:'#faf5ff', text:'#553c9a', light:'#e9d8fd' },
+    { border:'#b83280', bg:'#fff5f7', text:'#97266d', light:'#fed7e2' },
+    { border:'#975a16', bg:'#fffaf0', text:'#744210', light:'#faf089' },
+  ];
+
+  let html = `<div class="sheet active"><h2>📊 Estadísticas de Cuadre</h2>
+    <div class="sub">Comparación por contraparte: IDA 696-100 ↔ VUELTA 696-200 · IDA 696-200 ↔ VUELTA 696-100</div>
+    <div class="toolbar no-print">
+      <button onclick="printSheet()">🖨 Imprimir estadísticas</button>
+    </div>
+    <div class="kpi-grid">
+      <div class="kpi"><div class="label">Pares únicos</div><div class="value">${totalPairs}</div></div>
+      <div class="kpi ok"><div class="label">✓ Cuadres OK</div><div class="value">${okPairs.length}</div></div>
+      <div class="kpi ${badCount ? 'bad' : 'ok'}"><div class="label">✗ Con diferencia</div><div class="value">${badCount}</div></div>
+      <div class="kpi ${badCount ? 'warn' : 'ok'}"><div class="label">Mayor diferencia</div><div class="value">${fmt(maxDiff)}</div></div>
+    </div>`;
+
+  if (badCount === 0) {
+    html += `<div class="success-panel"><span class="big">✅</span><strong>¡Todo cuadra!</strong><br>
+      Los ${totalPairs} pares entre hojas están balanceados. No hay territorios con diferencias pendientes.</div>`;
+  } else {
+    html += `<h3 style="color:#1e3a5f; margin: 4px 0 12px;">⚠ Pares con diferencias (${badCount})</h3>
+      <div class="pairs-container">`;
+    badPairs.forEach((g, idx) => {
+      const c = PALETTE[idx % PALETTE.length];
+      html += `<div class="pair-card" style="border-left-color:${c.border}; background:${c.bg};">
+        <div class="pair-header" style="color:${c.text};">
+          <span class="pair-dot" style="background:${c.border};"></span>
+          ${g.from} (${g.ccFrom}) ↔ ${g.to} (${g.ccTo})
+        </div>
+        <table class="compare-table">
+          <thead><tr style="background:${c.light}; color:${c.text};">
+            <th style="width:22%;">Comparación</th>
+            <th style="width:26%;">➡ IDA · ${g.from} → ${g.to}</th>
+            <th style="width:26%;">⬅ VUELTA · ${g.to} → ${g.from}</th>
+            <th style="width:26%;">Diferencia</th>
+          </tr></thead>
+          <tbody>
+            <tr>
+              <td class="cc-pair" style="color:${c.text};">IDA 696-100<br>vs VUELTA 696-200</td>
+              <td class="num">${fmt(g.ida100)}</td>
+              <td class="num" style="background:${c.light}55;">${fmt(g.vuel200)}</td>
+              <td class="num diff" style="color:${c.text};">${fmt(g.dif100)}</td>
+            </tr>
+            <tr>
+              <td class="cc-pair" style="color:${c.text};">IDA 696-200<br>vs VUELTA 696-100</td>
+              <td class="num">${fmt(g.ida200)}</td>
+              <td class="num" style="background:${c.light}55;">${fmt(g.vuel100)}</td>
+              <td class="num diff" style="color:${c.text};">${fmt(g.dif200)}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>`;
+    });
+    html += `</div>
+      <div style="background:#fff8e6; border-left:4px solid #c05621; padding:12px 16px; border-radius:6px; font-size:.85rem; color:#7b341e; line-height:1.6; margin-top:16px;">
+        <strong>Resumen:</strong> ${badCount} par(es) con diferencia · Suma de magnitudes: <strong>${fmt(sumAbsDiff)}</strong>
+        <br><strong>Cómo leer:</strong> en cada fila se compara la cuenta de la IDA contra la cuenta <em>contraria</em> de la VUELTA (100 contra 200 y viceversa). La diferencia = valor IDA − valor VUELTA de la contraparte. Los ${okPairs.length} pares restantes están balanceados y no se listan.
+      </div>`;
+  }
+  html += `</div>`;
+  return html;
+}
+
+/* ============ Setters ============ */
+function setTerritorio(sk,k,v){ DATA[sk].territorio[k]=num(v); saveData(); rerender(sk); showToast('✓ Guardado'); }
+function setAgencia(sk,i,k,v){ DATA[sk].agencias[i][k]=num(v); saveData(); rerender(sk); showToast('✓ Guardado'); }
+function setOtro(sk,i,k,v){ DATA[sk].otros[i][k]=num(v); saveData(); rerender(sk); showToast('✓ Guardado'); }
+function setDirGral(sk,k,v){ DATA[sk].dirGral[k]=num(v); saveData(); rerender(sk); showToast('✓ Guardado'); }
+function setSaldo(sk,k,v){ DATA[sk][k]=num(v); saveData(); rerender(sk); showToast('✓ Guardado'); }
+function resetSheet(){
+  if(!confirm('¿Restaurar TODOS los datos a los valores originales del archivo? (se recargará la página)')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  location.reload();
+}
+
+/* ============ Configuración ============ */
+function openSettings(){
+  document.getElementById('cfgEmpresa').value = CONFIG.empresa;
+  document.getElementById('cfgPeriodo').value = CONFIG.periodo;
+  document.getElementById('cfgShowDiff').checked = CONFIG.showDiffCol;
+  const fc = document.getElementById('cfgFirmantes');
+  fc.innerHTML = '';
+  Object.keys(DATA).forEach(k => {
+    const d = DATA[k];
+    fc.innerHTML += `<div class="firmante-group">
+      <h4>${d.nombre}</h4>
+      <label>Certifica: <input type="text" data-sheet="${k}" data-field="cert" value="${d.cert.replace(/"/g,'&quot;')}"></label>
+      <label>Recibido por: <input type="text" data-sheet="${k}" data-field="recibido" value="${d.recibido.replace(/"/g,'&quot;')}"></label>
+    </div>`;
+  });
+  document.getElementById('settingsDialog').showModal();
+}
+function applySettings(){
+  CONFIG.empresa = document.getElementById('cfgEmpresa').value.trim() || 'AGESP.SA';
+  CONFIG.periodo = document.getElementById('cfgPeriodo').value.trim();
+  CONFIG.showDiffCol = document.getElementById('cfgShowDiff').checked;
+  document.querySelectorAll('#cfgFirmantes input').forEach(inp => {
+    DATA[inp.dataset.sheet][inp.dataset.field] = inp.value;
+  });
+  saveData(); saveConfig();
+  updateHeader();
+  document.getElementById('settingsDialog').close();
+  rerender(currentSheet);
+  showToast('✓ Configuración guardada');
+}
+
+/* ============ Impresión ============ */
+function printSheet(){
+  document.body.classList.remove('printing-all');
+  window.print();
+}
+function printAll(){
+  document.body.classList.add('printing-all');
+  setTimeout(()=>{
+    window.print();
+    setTimeout(()=>document.body.classList.remove('printing-all'), 500);
+  }, 100);
+}
+
+/* ============ Navegación ============ */
+let currentSheet = Object.keys(DATA)[0];
+function rerender(sk){
+  if (sk === 'ESTADISTICAS') document.getElementById('main').innerHTML = renderStats();
+  else document.getElementById('main').innerHTML = renderSheet(sk);
+}
+function buildTabs(){
+  const nav = document.getElementById('tabs');
+  nav.innerHTML = '';
+  const keys = Object.keys(DATA).concat(['ESTADISTICAS']);
+  keys.forEach(k => {
+    const b = document.createElement('button');
+    b.textContent = k === 'ESTADISTICAS' ? '📊 ESTADISTICAS' : k;
+    b.className = (k === currentSheet) ? 'active' : '';
+    b.onclick = () => { currentSheet = k; buildTabs(); rerender(k); };
+    nav.appendChild(b);
+  });
+}
+updateHeader();
+buildTabs();
+rerender(currentSheet);
+
+/* =====================================================================
+   EXPORTACIÓN A EXCEL (plantilla con fórmulas bloqueadas)
+   ===================================================================== */
+const BORDER = {
+  top:    { style:'thin', color:{argb:'FFB0B7BF'} },
+  left:   { style:'thin', color:{argb:'FFB0B7BF'} },
+  bottom: { style:'thin', color:{argb:'FFB0B7BF'} },
+  right:  { style:'thin', color:{argb:'FFB0B7BF'} }
+};
+
+function styleHeaderRow(ws, row, cols, opts) {
+  for (let c = 1; c <= cols; c++) {
+    const cell = ws.getCell(row, c);
+    cell.border = BORDER;
+    cell.font = Object.assign({ size: 11 }, opts.font || {});
+    if (opts.fill) cell.fill = { type:'pattern', pattern:'solid', fgColor: { argb: opts.fill } };
+    if (c >= 3) { cell.numFmt = '#,##0.00'; cell.alignment = { horizontal:'right', vertical:'middle' }; }
+    else { cell.alignment = { horizontal:'left', vertical:'middle' }; }
+  }
+}
+
+function buildSheet(wb, sk) {
+  const d = DATA[sk];
+  const ws = wb.addWorksheet(sk);
+  ws.columns = [{width:38},{width:10},{width:22},{width:22}];
+
+  let r = 1;
+  // Título
+  ws.getCell(r,1).value = 'Consolidado de Operaciones entre Dependencias de ' + CONFIG.empresa;
+  ws.mergeCells(r,1,r,4);
+  ws.getCell(r,1).font = { bold:true, size:14, color:{argb:'FF1E3A5F'} };
+  ws.getCell(r,1).alignment = { horizontal:'center', vertical:'middle' };
+  ws.getRow(r).height = 26;
+  r++;
+  // Subtítulo
+  ws.getCell(r,1).value = d.subtitulo + ' · C. Costo ' + d.ccosto;
+  ws.mergeCells(r,1,r,4);
+  ws.getCell(r,1).font = { size:11, color:{argb:'FF555555'} };
+  ws.getCell(r,1).alignment = { horizontal:'center' };
+  r++;
+  // Período
+  ws.getCell(r,1).value = CONFIG.periodo ? 'Período: ' + CONFIG.periodo : 'Cuentas 696-100 / 696-200';
+  ws.mergeCells(r,1,r,4);
+  ws.getCell(r,1).font = { size:10, color:{argb:'FF777777'} };
+  ws.getCell(r,1).alignment = { horizontal:'center' };
+  r++;
+  r++; // vacío
+
+  // Cabeceras
+  ['AGENCIAS','C. COSTO','696-100','696-200'].forEach((h,i)=>{
+    const c = ws.getCell(r, i+1);
+    c.value = h;
+    c.font = { bold:true, color:{argb:'FFFFFFFF'}, size:11 };
+    c.fill = { type:'pattern', pattern:'solid', fgColor:{argb:'FF2C5282'} };
+    c.border = BORDER;
+    c.alignment = { horizontal: i===0?'left':'center', vertical:'middle' };
+  });
+  ws.getRow(r).height = 22;
+  r++;
+
+  // Reservar fila CUADRE
+  const cuadreRow = r; r++;
+
+  // TERRITORIO
+  let territorioRow = null;
+  if (d.territorio) {
+    territorioRow = r;
+    ws.getCell(r,1).value = 'TERRITORIO';
+    ws.getCell(r,2).value = d.ccosto;
+    ws.getCell(r,3).value = d.territorio.v100;
+    ws.getCell(r,4).value = d.territorio.v200;
+    ws.getCell(r,3).protection = { locked:false };
+    ws.getCell(r,4).protection = { locked:false };
+    styleHeaderRow(ws, r, 4, { font:{bold:true}, fill:'FFCBD5E0' });
+    r++;
+  }
+
+  // TOTAL C. COSTO (reserva) + AGENCIAS
+  let totalCostoRow = null, agenciasStart = null, agenciasEnd = null;
+  if (d.agencias.length) {
+    totalCostoRow = r; r++;
+    agenciasStart = r;
+    d.agencias.forEach(a => {
+      ws.getCell(r,1).value = a.nombre;
+      ws.getCell(r,2).value = a.cc;
+      ws.getCell(r,3).value = a.v100;
+      ws.getCell(r,4).value = a.v200;
+      ws.getCell(r,3).protection = { locked:false };
+      ws.getCell(r,4).protection = { locked:false };
+      styleHeaderRow(ws, r, 4, { font:{size:10} });
+      r++;
+    });
+    agenciasEnd = r - 1;
+  }
+
+  // DIRECCION GENERAL (no para JEFT)
+  let dirGralRow = null;
+  if (d.territorio || sk === 'SERVICIOS TECNICOS') {
+    dirGralRow = r;
+    ws.getCell(r,1).value = 'DIRECCION GENERAL';
+    ws.getCell(r,2).value = '150';
+    ws.getCell(r,3).value = d.dirGral.v100;
+    ws.getCell(r,4).value = d.dirGral.v200;
+    ws.getCell(r,3).protection = { locked:false };
+    ws.getCell(r,4).protection = { locked:false };
+    styleHeaderRow(ws, r, 4, { font:{bold:true}, fill:'FFE2E8F0' });
+    r++;
+  }
+
+  // OTROS TERRITORIOS
+  const otrosStart = r;
+  d.otros.forEach(o => {
+    ws.getCell(r,1).value = o.nombre;
+    ws.getCell(r,2).value = o.cc;
+    ws.getCell(r,3).value = o.v100;
+    ws.getCell(r,4).value = o.v200;
+    ws.getCell(r,3).protection = { locked:false };
+    ws.getCell(r,4).protection = { locked:false };
+    styleHeaderRow(ws, r, 4, { font:{size:10} });
+    r++;
+  });
+  const otrosEnd = r - 1;
+
+  // TOTAL OTROS (formula)
+  const totalOtrosRow = r;
+  ws.getCell(r,1).value = 'TOTAL OTROS TERRIT.';
+  ws.getCell(r,3).value = { formula:`SUM(C${otrosStart}:C${otrosEnd})` };
+  ws.getCell(r,4).value = { formula:`SUM(D${otrosStart}:D${otrosEnd})` };
+  styleHeaderRow(ws, r, 4, { font:{bold:true}, fill:'FFCBD5E0' });
+  r++;
+
+  // TOTAL POR CUENTAS (formula se llena al final)
+  const totalCuentasRow = r;
+  ws.getCell(r,1).value = 'TOTAL POR CUENTAS';
+  styleHeaderRow(ws, r, 4, { font:{bold:true, color:{argb:'FFFFFFFF'}}, fill:'FF2C5282' });
+  r++;
+
+  // SALDO
+  const saldoRow = r;
+  ws.getCell(r,1).value = 'SALDO CUENTAS CONTAB.';
+  ws.getCell(r,3).value = d.saldo100;
+  ws.getCell(r,4).value = d.saldo200;
+  ws.getCell(r,3).protection = { locked:false };
+  ws.getCell(r,4).protection = { locked:false };
+  styleHeaderRow(ws, r, 4, { font:{bold:true}, fill:'FFCBD5E0' });
+  r++;
+
+  // DIFERENCIA (formula)
+  const difRow = r;
+  ws.getCell(r,1).value = 'DIFERENCIA';
+  ws.getCell(r,3).value = { formula:`C${totalCuentasRow}-C${saldoRow}` };
+  ws.getCell(r,4).value = { formula:`D${totalCuentasRow}-D${saldoRow}` };
+  styleHeaderRow(ws, r, 4, { font:{bold:true, color:{argb:'FFFFFFFF'}}, fill:'FF2C5282' });
+  r++;
+
+  // Firmantes
+  r++;
+  ws.getCell(r,1).value = 'CERTIFICA: ______________________________';
+  ws.getCell(r,3).value = 'RECIBIDO POR: ______________________________';
+  ws.mergeCells(r,3,r,4);
+  r++;
+  ws.getCell(r,1).value = d.cert;
+  ws.getCell(r,3).value = d.recibido;
+  ws.mergeCells(r,3,r,4);
+
+  // CUADRE formula (deferred)
+  let cF100, cF200;
+  if (d.territorio) {
+    cF100 = `C${territorioRow}+C${totalCostoRow}`;
+    cF200 = `D${territorioRow}+D${totalCostoRow}`;
+  } else if (sk === 'SERVICIOS TECNICOS') {
+    cF100 = `C${dirGralRow}+C${totalOtrosRow}`;
+    cF200 = `D${dirGralRow}+D${totalOtrosRow}`;
+  } else {
+    cF100 = `C${totalOtrosRow}`;
+    cF200 = `D${totalOtrosRow}`;
+  }
+  ws.getCell(cuadreRow,1).value = 'CUADRE DE LA REGION';
+  ws.getCell(cuadreRow,3).value = { formula:cF100 };
+  ws.getCell(cuadreRow,4).value = { formula:cF200 };
+  styleHeaderRow(ws, cuadreRow, 4, { font:{bold:true}, fill:'FFE2E8F0' });
+
+  // TOTAL C. COSTO formula
+  if (totalCostoRow) {
+    ws.getCell(totalCostoRow,1).value = 'TOTAL C. COSTO';
+    ws.getCell(totalCostoRow,3).value = { formula:`SUM(C${agenciasStart}:C${agenciasEnd})` };
+    ws.getCell(totalCostoRow,4).value = { formula:`SUM(D${agenciasStart}:D${agenciasEnd})` };
+    styleHeaderRow(ws, totalCostoRow, 4, { font:{bold:true}, fill:'FFCBD5E0' });
+  }
+
+  // TOTAL POR CUENTAS formula
+  let tp100, tp200;
+  if (d.territorio) {
+    tp100 = `C${cuadreRow}+C${dirGralRow}+C${totalOtrosRow}`;
+    tp200 = `D${cuadreRow}+D${dirGralRow}+D${totalOtrosRow}`;
+  } else {
+    tp100 = `C${cuadreRow}`;
+    tp200 = `D${cuadreRow}`;
+  }
+  ws.getCell(totalCuentasRow,3).value = { formula:tp100 };
+  ws.getCell(totalCuentasRow,4).value = { formula:tp200 };
+
+  // Proteger hoja (sin contraseña → fácil de desproteger si es necesario)
+  ws.protect('', {
+    selectLockedCells:true, selectUnlockedCells:true,
+    formatCells:false, formatColumns:false, formatRows:false,
+    insertColumns:false, insertRows:false,
+    deleteColumns:false, deleteRows:false
+  });
+}
+
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 1500);
+}
+
+async function exportSheet(sk) {
+  try {
+    const wb = new ExcelJS.Workbook();
+    wb.creator = 'AGESP.SA';
+    buildSheet(wb, sk);
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    downloadBlob(blob, `AGESP_${sk}_plantilla.xlsx`);
+    showToast('✓ Plantilla de ' + sk + ' exportada');
+  } catch (e) {
+    alert('Error al exportar: ' + e.message);
+  }
+}
+
+async function exportAll() {
+  try {
+    const wb = new ExcelJS.Workbook();
+    wb.creator = 'AGESP.SA';
+    Object.keys(DATA).forEach(sk => buildSheet(wb, sk));
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    downloadBlob(blob, 'AGESP_plantilla_completa.xlsx');
+    showToast('✓ Plantilla completa exportada');
+  } catch (e) {
+    alert('Error al exportar: ' + e.message);
+  }
+}
+
+/* =====================================================================
+   IMPORTACIÓN DE PLANTILLA
+   ===================================================================== */
+function triggerImport() {
+  document.getElementById('importFile').click();
+}
+
+function getNumericValue(cell) {
+  if (!cell || cell.value === null || cell.value === undefined) return null;
+  const v = cell.value;
+  if (typeof v === 'number') return v;
+  if (typeof v === 'string') {
+    const n = parseFloat(v.replace(/,/g,'').trim());
+    return isNaN(n) ? null : n;
+  }
+  if (typeof v === 'object') {
+    if (v.result !== undefined && v.result !== null) {
+      const n = parseFloat(v.result);
+      return isNaN(n) ? null : n;
+    }
+    if (v.richText) {
+      const s = v.richText.map(t => t.text).join('');
+      const n = parseFloat(s.replace(/,/g,'').trim());
+      return isNaN(n) ? null : n;
+    }
+  }
+  return null;
+}
+
+async function handleImport(input) {
+  const file = input.files[0];
+  if (!file) return;
+  try {
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.load(await file.arrayBuffer());
+
+    let updatedSheets = 0, updatedValues = 0;
+    const matchedSheets = [];
+
+    wb.eachSheet(ws => {
+      const sk = ws.name;
+      if (!DATA[sk]) return;
+      const d = DATA[sk];
+      let thisSheetUpdates = 0;
+
+      ws.eachRow(row => {
+        const label = String(row.getCell(1).value || '').trim();
+        const cc = String(row.getCell(2).value || '').trim();
+
+        if (label === 'TERRITORIO' && d.territorio) {
+          const a = getNumericValue(row.getCell(3));
+          const b = getNumericValue(row.getCell(4));
+          if (a !== null) d.territorio.v100 = a;
+          if (b !== null) d.territorio.v200 = b;
+          if (a !== null || b !== null) thisSheetUpdates++;
+        }
+        else if (label === 'DIRECCION GENERAL') {
+          const a = getNumericValue(row.getCell(3));
+          const b = getNumericValue(row.getCell(4));
+          if (a !== null) d.dirGral.v100 = a;
+          if (b !== null) d.dirGral.v200 = b;
+          if (a !== null || b !== null) thisSheetUpdates++;
+        }
+        else if (label === 'SALDO CUENTAS CONTAB.') {
+          const a = getNumericValue(row.getCell(3));
+          const b = getNumericValue(row.getCell(4));
+          if (a !== null) d.saldo100 = a;
+          if (b !== null) d.saldo200 = b;
+          if (a !== null || b !== null) thisSheetUpdates++;
+        }
+        else if (cc) {
+          const ag = d.agencias.find(x => x.cc === cc);
+          if (ag) {
+            const a = getNumericValue(row.getCell(3));
+            const b = getNumericValue(row.getCell(4));
+            if (a !== null) ag.v100 = a;
+            if (b !== null) ag.v200 = b;
+            if (a !== null || b !== null) thisSheetUpdates++;
+          } else {
+            const ot = d.otros.find(x => x.cc === cc);
+            if (ot) {
+              const a = getNumericValue(row.getCell(3));
+              const b = getNumericValue(row.getCell(4));
+              if (a !== null) ot.v100 = a;
+              if (b !== null) ot.v200 = b;
+              if (a !== null || b !== null) thisSheetUpdates++;
+            }
+          }
+        }
+      });
+
+      if (thisSheetUpdates > 0) {
+        updatedSheets++;
+        updatedValues += thisSheetUpdates;
+        matchedSheets.push(sk);
+      }
+    });
+
+    if (updatedSheets === 0) {
+      alert('No se encontraron hojas compatibles en el archivo. Asegúrese de importar una plantilla exportada desde esta aplicación.');
+    } else {
+      saveData();
+      rerender(currentSheet);
+      showToast(`✓ Importado: ${updatedValues} valores en ${updatedSheets} hoja(s)`);
+    }
+  } catch (e) {
+    alert('Error al importar: ' + e.message);
+  }
+  input.value = '';
+}
+</script>
+</body>
+</html>
