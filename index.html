@@ -27,9 +27,15 @@
   table { border-collapse: collapse; width: 100%; background: #fff; margin-bottom: 18px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
   th, td { border: 1px solid #d1d9e0; padding: 6px 10px; text-align: left; font-size: .88rem; }
   th { background: #2c5282; color: #fff; font-weight: 600; }
-  td.num { text-align: right; font-variant-numeric: tabular-nums; }
-  td input { width: 100%; border: none; background: #fffbea; padding: 4px; text-align: right; font-variant-numeric: tabular-nums; font-size: .88rem; }
+  /* ===== CENTRADO DE COLUMNAS NUMÉRICAS ===== */
+  td.num { text-align: center; font-variant-numeric: tabular-nums; }
+  td input { width: 100%; border: none; background: #fffbea; padding: 4px; text-align: center; font-variant-numeric: tabular-nums; font-size: .88rem; }
   td input:focus { outline: 2px solid #f6ad55; background: #fff; }
+  /* Centrar encabezados numéricos (columnas 2,3,4,5) */
+  table thead th:nth-child(2),
+  table thead th:nth-child(3),
+  table thead th:nth-child(4),
+  table thead th:nth-child(5) { text-align: center; }
   tr.section-row td { background: #e2e8f0; font-weight: 600; color: #1e3a5f; }
   tr.total-row td { background: #cbd5e0; font-weight: 700; }
   tr.result-row td { background: #2c5282; color: #fff; font-weight: 700; }
@@ -46,6 +52,11 @@
   .toolbar .warn { background: #c05621; }
   .toolbar .warn:hover { background: #9c4221; }
   .cuadres-title { font-weight: 700; color: #1e3a5f; margin: 18px 0 6px; }
+  /* Cuadres: centrar columnas numéricas (2,3,4) */
+  .cuadres-title + table thead th:nth-child(2),
+  .cuadres-title + table thead th:nth-child(3),
+  .cuadres-title + table thead th:nth-child(4) { text-align: center; }
+  .cuadres-title + table tbody td:nth-child(2) { text-align: center; }
   .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px; }
   .kpi { background: #fff; border-radius: 8px; padding: 14px 18px; box-shadow: 0 1px 3px rgba(0,0,0,.08); border-left: 4px solid #2c5282; }
   .kpi .label { font-size: .78rem; color: #555; text-transform: uppercase; letter-spacing: .4px; }
@@ -61,7 +72,7 @@
   .compare-table th, .compare-table td { padding: 8px 12px; border: 1px solid rgba(0,0,0,.08); font-size: .85rem; }
   .compare-table thead th { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; text-align: center; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .compare-table tbody td.cc-pair { font-weight: 700; font-size: .8rem; color: #555; background: rgba(0,0,0,.02); }
-  .compare-table tbody td.num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+  .compare-table tbody td.num { text-align: center; font-variant-numeric: tabular-nums; font-weight: 600; }
   .compare-table tbody td.diff { font-weight: 800; font-size: .95rem; }
   dialog { border: none; border-radius: 8px; padding: 20px 24px; max-width: 620px; width: 90%; box-shadow: 0 10px 40px rgba(0,0,0,.3); }
   dialog::backdrop { background: rgba(0,0,0,.4); }
@@ -97,7 +108,8 @@
     tr.section-row td { background: #e2e8f0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     tr.total-row td { background: #cbd5e0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     tr.result-row td { background: #2c5282 !important; color: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    td input { border: none !important; background: transparent !important; padding: 0 !important; }
+    td input { border: none !important; background: transparent !important; padding: 0 !important; text-align: center !important; }
+    td.num { text-align: center !important; }
     .sign td { border: none !important; }
     h2, .sub { color: #000; }
     .sheet .sub { font-size: .85rem; }
@@ -150,18 +162,12 @@
 <div class="toast" id="toast">✓ Cambios guardados</div>
 
 <script>
-/* =====================================================================
-   CONFIG
-   ===================================================================== */
 const CONFIG_KEY = 'prioyeto_config_v1';
 const CONFIG = { empresa: 'AGESP.SA', periodo: '', showDiffCol: false };
 function loadConfig(){ try { const raw = localStorage.getItem(CONFIG_KEY); if (raw) Object.assign(CONFIG, JSON.parse(raw)); } catch(e){} }
 function saveConfig(){ try { localStorage.setItem(CONFIG_KEY, JSON.stringify(CONFIG)); } catch(e){} }
 loadConfig();
 
-/* =====================================================================
-   DATOS BASE
-   ===================================================================== */
 const DATA = {
   OCCIDENTE: {
     nombre:'OCCIDENTE', subtitulo:'TERRITORIO OCCIDENTAL CONSOLIDADO', ccosto:'300',
@@ -279,7 +285,6 @@ function saveData() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(DAT
 function loadData() { try { const raw = localStorage.getItem(STORAGE_KEY); if (raw) Object.assign(DATA, JSON.parse(raw)); } catch(e){} }
 loadData();
 
-/* ============ Utilidades ============ */
 const fmt = n => (n === null || n === undefined || isNaN(n)) ? '' :
   Number(n).toLocaleString('es-ES', {minimumFractionDigits:2, maximumFractionDigits:2});
 const num = v => { const n = parseFloat(String(v).replace(/,/g,'')); return isNaN(n)?0:n; };
@@ -304,7 +309,6 @@ function getEntry(sheetKey, cc) {
   return d.otros.find(o => o.cc === cc) || {v100:0, v200:0};
 }
 
-/* ============ Render hoja ============ */
 function renderSheet(sheetKey) {
   const d = DATA[sheetKey];
   const hasTerritorio = d.territorio !== null && d.territorio !== undefined;
@@ -424,7 +428,6 @@ function renderSheet(sheetKey) {
   return html;
 }
 
-/* ============ Configuración de cuadres ============ */
 function getCuadresConfig() {
   return {
     OCCIDENTE: [
@@ -496,7 +499,6 @@ function renderCuadres(sheetKey) {
   return html;
 }
 
-/* ============ Estadísticas ============ */
 function renderStats() {
   const config = getCuadresConfig();
   const pairMap = {};
@@ -596,7 +598,6 @@ function renderStats() {
   return html;
 }
 
-/* ============ Setters ============ */
 function setTerritorio(sk,k,v){ DATA[sk].territorio[k]=num(v); saveData(); rerender(sk); showToast('✓ Guardado'); }
 function setAgencia(sk,i,k,v){ DATA[sk].agencias[i][k]=num(v); saveData(); rerender(sk); showToast('✓ Guardado'); }
 function setOtro(sk,i,k,v){ DATA[sk].otros[i][k]=num(v); saveData(); rerender(sk); showToast('✓ Guardado'); }
@@ -608,7 +609,6 @@ function resetSheet(){
   location.reload();
 }
 
-/* ============ Configuración ============ */
 function openSettings(){
   document.getElementById('cfgEmpresa').value = CONFIG.empresa;
   document.getElementById('cfgPeriodo').value = CONFIG.periodo;
@@ -639,7 +639,6 @@ function applySettings(){
   showToast('✓ Configuración guardada');
 }
 
-/* ============ Impresión ============ */
 function printSheet(){
   document.body.classList.remove('printing-all');
   window.print();
@@ -652,7 +651,6 @@ function printAll(){
   }, 100);
 }
 
-/* ============ Navegación ============ */
 let currentSheet = Object.keys(DATA)[0];
 function rerender(sk){
   if (sk === 'ESTADISTICAS') document.getElementById('main').innerHTML = renderStats();
@@ -674,9 +672,7 @@ updateHeader();
 buildTabs();
 rerender(currentSheet);
 
-/* =====================================================================
-   EXPORTACIÓN A EXCEL (plantilla con fórmulas bloqueadas)
-   ===================================================================== */
+/* ============ EXPORTACIÓN A EXCEL ============ */
 const BORDER = {
   top:    { style:'thin', color:{argb:'FFB0B7BF'} },
   left:   { style:'thin', color:{argb:'FFB0B7BF'} },
@@ -690,7 +686,7 @@ function styleHeaderRow(ws, row, cols, opts) {
     cell.border = BORDER;
     cell.font = Object.assign({ size: 11 }, opts.font || {});
     if (opts.fill) cell.fill = { type:'pattern', pattern:'solid', fgColor: { argb: opts.fill } };
-    if (c >= 3) { cell.numFmt = '#,##0.00'; cell.alignment = { horizontal:'right', vertical:'middle' }; }
+    if (c >= 3) { cell.numFmt = '#,##0.00'; cell.alignment = { horizontal:'center', vertical:'middle' }; }
     else { cell.alignment = { horizontal:'left', vertical:'middle' }; }
   }
 }
@@ -701,28 +697,24 @@ function buildSheet(wb, sk) {
   ws.columns = [{width:38},{width:10},{width:22},{width:22}];
 
   let r = 1;
-  // Título
   ws.getCell(r,1).value = 'Consolidado de Operaciones entre Dependencias de ' + CONFIG.empresa;
   ws.mergeCells(r,1,r,4);
   ws.getCell(r,1).font = { bold:true, size:14, color:{argb:'FF1E3A5F'} };
   ws.getCell(r,1).alignment = { horizontal:'center', vertical:'middle' };
   ws.getRow(r).height = 26;
   r++;
-  // Subtítulo
   ws.getCell(r,1).value = d.subtitulo + ' · C. Costo ' + d.ccosto;
   ws.mergeCells(r,1,r,4);
   ws.getCell(r,1).font = { size:11, color:{argb:'FF555555'} };
   ws.getCell(r,1).alignment = { horizontal:'center' };
   r++;
-  // Período
   ws.getCell(r,1).value = CONFIG.periodo ? 'Período: ' + CONFIG.periodo : 'Cuentas 696-100 / 696-200';
   ws.mergeCells(r,1,r,4);
   ws.getCell(r,1).font = { size:10, color:{argb:'FF777777'} };
   ws.getCell(r,1).alignment = { horizontal:'center' };
   r++;
-  r++; // vacío
+  r++;
 
-  // Cabeceras
   ['AGENCIAS','C. COSTO','696-100','696-200'].forEach((h,i)=>{
     const c = ws.getCell(r, i+1);
     c.value = h;
@@ -734,10 +726,8 @@ function buildSheet(wb, sk) {
   ws.getRow(r).height = 22;
   r++;
 
-  // Reservar fila CUADRE
   const cuadreRow = r; r++;
 
-  // TERRITORIO
   let territorioRow = null;
   if (d.territorio) {
     territorioRow = r;
@@ -751,7 +741,6 @@ function buildSheet(wb, sk) {
     r++;
   }
 
-  // TOTAL C. COSTO (reserva) + AGENCIAS
   let totalCostoRow = null, agenciasStart = null, agenciasEnd = null;
   if (d.agencias.length) {
     totalCostoRow = r; r++;
@@ -769,7 +758,6 @@ function buildSheet(wb, sk) {
     agenciasEnd = r - 1;
   }
 
-  // DIRECCION GENERAL (no para JEFT)
   let dirGralRow = null;
   if (d.territorio || sk === 'SERVICIOS TECNICOS') {
     dirGralRow = r;
@@ -783,7 +771,6 @@ function buildSheet(wb, sk) {
     r++;
   }
 
-  // OTROS TERRITORIOS
   const otrosStart = r;
   d.otros.forEach(o => {
     ws.getCell(r,1).value = o.nombre;
@@ -797,7 +784,6 @@ function buildSheet(wb, sk) {
   });
   const otrosEnd = r - 1;
 
-  // TOTAL OTROS (formula)
   const totalOtrosRow = r;
   ws.getCell(r,1).value = 'TOTAL OTROS TERRIT.';
   ws.getCell(r,3).value = { formula:`SUM(C${otrosStart}:C${otrosEnd})` };
@@ -805,13 +791,11 @@ function buildSheet(wb, sk) {
   styleHeaderRow(ws, r, 4, { font:{bold:true}, fill:'FFCBD5E0' });
   r++;
 
-  // TOTAL POR CUENTAS (formula se llena al final)
   const totalCuentasRow = r;
   ws.getCell(r,1).value = 'TOTAL POR CUENTAS';
   styleHeaderRow(ws, r, 4, { font:{bold:true, color:{argb:'FFFFFFFF'}}, fill:'FF2C5282' });
   r++;
 
-  // SALDO
   const saldoRow = r;
   ws.getCell(r,1).value = 'SALDO CUENTAS CONTAB.';
   ws.getCell(r,3).value = d.saldo100;
@@ -821,7 +805,6 @@ function buildSheet(wb, sk) {
   styleHeaderRow(ws, r, 4, { font:{bold:true}, fill:'FFCBD5E0' });
   r++;
 
-  // DIFERENCIA (formula)
   const difRow = r;
   ws.getCell(r,1).value = 'DIFERENCIA';
   ws.getCell(r,3).value = { formula:`C${totalCuentasRow}-C${saldoRow}` };
@@ -829,7 +812,6 @@ function buildSheet(wb, sk) {
   styleHeaderRow(ws, r, 4, { font:{bold:true, color:{argb:'FFFFFFFF'}}, fill:'FF2C5282' });
   r++;
 
-  // Firmantes
   r++;
   ws.getCell(r,1).value = 'CERTIFICA: ______________________________';
   ws.getCell(r,3).value = 'RECIBIDO POR: ______________________________';
@@ -839,7 +821,6 @@ function buildSheet(wb, sk) {
   ws.getCell(r,3).value = d.recibido;
   ws.mergeCells(r,3,r,4);
 
-  // CUADRE formula (deferred)
   let cF100, cF200;
   if (d.territorio) {
     cF100 = `C${territorioRow}+C${totalCostoRow}`;
@@ -856,7 +837,6 @@ function buildSheet(wb, sk) {
   ws.getCell(cuadreRow,4).value = { formula:cF200 };
   styleHeaderRow(ws, cuadreRow, 4, { font:{bold:true}, fill:'FFE2E8F0' });
 
-  // TOTAL C. COSTO formula
   if (totalCostoRow) {
     ws.getCell(totalCostoRow,1).value = 'TOTAL C. COSTO';
     ws.getCell(totalCostoRow,3).value = { formula:`SUM(C${agenciasStart}:C${agenciasEnd})` };
@@ -864,7 +844,6 @@ function buildSheet(wb, sk) {
     styleHeaderRow(ws, totalCostoRow, 4, { font:{bold:true}, fill:'FFCBD5E0' });
   }
 
-  // TOTAL POR CUENTAS formula
   let tp100, tp200;
   if (d.territorio) {
     tp100 = `C${cuadreRow}+C${dirGralRow}+C${totalOtrosRow}`;
@@ -876,7 +855,6 @@ function buildSheet(wb, sk) {
   ws.getCell(totalCuentasRow,3).value = { formula:tp100 };
   ws.getCell(totalCuentasRow,4).value = { formula:tp200 };
 
-  // Proteger hoja (sin contraseña → fácil de desproteger si es necesario)
   ws.protect('', {
     selectLockedCells:true, selectUnlockedCells:true,
     formatCells:false, formatColumns:false, formatRows:false,
@@ -903,9 +881,7 @@ async function exportSheet(sk) {
     const blob = new Blob([buffer], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     downloadBlob(blob, `AGESP_${sk}_plantilla.xlsx`);
     showToast('✓ Plantilla de ' + sk + ' exportada');
-  } catch (e) {
-    alert('Error al exportar: ' + e.message);
-  }
+  } catch (e) { alert('Error al exportar: ' + e.message); }
 }
 
 async function exportAll() {
@@ -917,17 +893,10 @@ async function exportAll() {
     const blob = new Blob([buffer], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     downloadBlob(blob, 'AGESP_plantilla_completa.xlsx');
     showToast('✓ Plantilla completa exportada');
-  } catch (e) {
-    alert('Error al exportar: ' + e.message);
-  }
+  } catch (e) { alert('Error al exportar: ' + e.message); }
 }
 
-/* =====================================================================
-   IMPORTACIÓN DE PLANTILLA
-   ===================================================================== */
-function triggerImport() {
-  document.getElementById('importFile').click();
-}
+function triggerImport() { document.getElementById('importFile').click(); }
 
 function getNumericValue(cell) {
   if (!cell || cell.value === null || cell.value === undefined) return null;
@@ -957,20 +926,15 @@ async function handleImport(input) {
   try {
     const wb = new ExcelJS.Workbook();
     await wb.xlsx.load(await file.arrayBuffer());
-
     let updatedSheets = 0, updatedValues = 0;
-    const matchedSheets = [];
-
     wb.eachSheet(ws => {
       const sk = ws.name;
       if (!DATA[sk]) return;
       const d = DATA[sk];
       let thisSheetUpdates = 0;
-
       ws.eachRow(row => {
         const label = String(row.getCell(1).value || '').trim();
         const cc = String(row.getCell(2).value || '').trim();
-
         if (label === 'TERRITORIO' && d.territorio) {
           const a = getNumericValue(row.getCell(3));
           const b = getNumericValue(row.getCell(4));
@@ -1012,12 +976,7 @@ async function handleImport(input) {
           }
         }
       });
-
-      if (thisSheetUpdates > 0) {
-        updatedSheets++;
-        updatedValues += thisSheetUpdates;
-        matchedSheets.push(sk);
-      }
+      if (thisSheetUpdates > 0) { updatedSheets++; updatedValues += thisSheetUpdates; }
     });
 
     if (updatedSheets === 0) {
@@ -1027,9 +986,7 @@ async function handleImport(input) {
       rerender(currentSheet);
       showToast(`✓ Importado: ${updatedValues} valores en ${updatedSheets} hoja(s)`);
     }
-  } catch (e) {
-    alert('Error al importar: ' + e.message);
-  }
+  } catch (e) { alert('Error al importar: ' + e.message); }
   input.value = '';
 }
 </script>
